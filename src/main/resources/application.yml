@@ -1,0 +1,26 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: spring-csv-upload
+  datasource:
+    url: jdbc:postgresql://localhost:5432/spring-csv-upload
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+
+# To set the logging level
+logging:
+  level:
+    root: INFO
+  file:
+    name: logs/api-requests.log
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
