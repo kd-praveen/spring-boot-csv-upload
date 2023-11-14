@@ -19,7 +19,7 @@ spring:
 # To set the logging level
 logging:
   level:
-    root: INFO
+    root: ERROR
   file:
     name: logs/api-requests.log
   pattern:

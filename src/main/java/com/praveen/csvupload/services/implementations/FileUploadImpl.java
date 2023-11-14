@@ -4,8 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,14 +32,21 @@ public class FileUploadImpl implements FileUploadService {
 
         Set<User> users = parseCsv(file);
 
+        // Filter out users whose email already exists in the database
+        users.removeIf(user -> isEmailExists(user.getEmail()));
+
         uploadRepository.saveAll(users);
 
         return users.size();
     }
 
+    private boolean isEmailExists(String email) {
+        Optional<User> user = uploadRepository.findByEmail(email);
+        return user.isPresent();
+    }
+
     private Set<User> parseCsv(MultipartFile file) throws IOException {
         try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-
             HeaderColumnNameMappingStrategy<UserCsvRepresentation> strategy = new HeaderColumnNameMappingStrategy<>();
             strategy.setType(UserCsvRepresentation.class);
 
@@ -48,15 +56,16 @@ public class FileUploadImpl implements FileUploadService {
                     .withIgnoreLeadingWhiteSpace(true)
                     .build();
 
-            return csvToBean.parse()
-                    .stream()
-                    .map(csvLine -> User.builder()
-                            .userName(csvLine.getUserName())
-                            .email(csvLine.getEmail())
-                            .age(csvLine.getAge())
-                            .city(csvLine.getCity())
-                            .build())
-                    .collect(Collectors.toSet());
+            Set<User> users = new HashSet<>();
+            for (UserCsvRepresentation csvLine : csvToBean.parse()) {
+                users.add(User.builder()
+                        .userName(csvLine.getUserName())
+                        .email(csvLine.getEmail())
+                        .age(csvLine.getAge())
+                        .city(csvLine.getCity())
+                        .build());
+            }
+            return users;
         }
     }
 
